@@ -2,34 +2,36 @@ import sys
 import os
 from pathlib import Path
 
-def is_debug():
-    return False
-
 def main():
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 2 or len(sys.argv) > 3:
         print("Specify working directory as script execution argument, e.g.: python orffilter.py input", file=sys.stderr)
+        print("Add delete argument for real, non-debug delete run: python orffilter.py input delete", file=sys.stderr)
         exit()
+
+    is_debug = True
+    if len(sys.argv) == 3 and sys.argv[2] == "delete":
+        print("Running delete FOR REAL!")
+        is_debug = False
+    else:
+        print("Running in debug mode.")
 
     input_path = os.path.abspath(sys.argv[1])
     print(f"Input directory: {input_path}")
     orfs = find_orfs(input_path)
     jpgs = find_jpgs(input_path)
 
-    if is_debug():
-        for o in orfs:
-            print(f"{o}: {orfs[o]}")
-        for j in jpgs:
-            print(f"{j}")
-
     deleted_files_count = 0
     for orf in orfs:
         if orf not in jpgs:
             for o in orfs[orf]:
                 deleted_files_count += 1
-                if is_debug():
+                if is_debug:
                     print(f"Delete ORF {o}")
+                else:
+                    os.remove(o)
     
     print(f"Deleted {deleted_files_count} ORF files.")
+    print()
     print("~~ Thank you for using our service! ~~")
 
 def find_orfs(input_dir):
